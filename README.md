@@ -138,6 +138,8 @@ python main.py
 ## Autor
 
 Proyecto académico desarrollado como simulador financiero orientado al análisis de inversiones.
+
 ---
+
 ## Diagrama UML
 <img width="1179" height="775" alt="image" src="https://github.com/user-attachments/assets/a999fa60-594b-4eea-929d-2230e180895f" />
