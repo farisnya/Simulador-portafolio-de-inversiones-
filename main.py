@@ -1,44 +1,60 @@
-import yfinance as yf
-class Activo:
-    def valor(self):
-        raise NotImplementedError("Debe implementarse en la subclase")
+from accion import Accion
+from renta_fija import RentaFija
+from portafolio import Portafolio
+from simulador import Simulador
+from grafico import Grafico
 
 
-class Accion(Activo):
-    def __init__(self, ticker, cantidad):
-        self.ticker = ticker.upper()
-        self.cantidad = cantidad
-        self.precios = yf.download(self.ticker, period="1y", progress=False)
+def main():
+    port = Portafolio(80000)
 
-    def precioActual(self):
-        return self.precios["Close"].iloc[-1]
+    tickers = ["AAPL", "TSLA", "MSFT", "AMZN", "GOOG",
+               "META", "NVDA", "NFLX", "BABA", "JPM"]
 
-    def precioDia(self, fecha):
-        return self.precios.loc[fecha]["Close"]
+    acciones = {t: Accion(t) for t in tickers}
 
-    def minDia(self, fecha):
-        return self.precios.loc[fecha]["Low"]
+    # Primer día común de datos
+    fechas_iniciales = None
+    for a in acciones.values():
+        idx = a.data.index.normalize()
+        fechas_iniciales = idx if fechas_iniciales is None else fechas_iniciales.intersection(idx)
+    fechas_ord = fechas_iniciales.sort_values()
+    fecha0 = fechas_ord[0]
 
-    def maxDia(self, fecha):
-        return self.precios.loc[fecha]["High"]
+    # Compra inicial: 5 unidades de cada acción
+    for t, acc in acciones.items():
+        precio = acc.precio_cierre(fecha0)
+        port.agregar_accion(acc, fecha0, precio, cantidad=5)
 
-    def valor(self):
-        return self.precioActual() * self.cantidad
+    # Renta fija diversificada
+    port.agregar_renta_fija(RentaFija("CDT-90d",    5000, 0.075))
+    port.agregar_renta_fija(RentaFija("CDT-360d",   8000, 0.095))
+    port.agregar_renta_fija(RentaFija("Bono-Corp",  6000, 0.11))
 
-    def obtenerDividendos(self):
-        ticker = yf.Ticker(self.ticker)
-        return ticker.dividends.sum()
+    # Simulador con órdenes intercaladas
+    sim = Simulador(port, acciones)
 
-class RentaFija(Activo):
-    def __init__(self, capital, tasa, dias):
-        self.capital = capital
-        self.tasa = tasa
-        self.dias = dias
+    if len(fechas_ord) > 60:
+        sim.programar_orden(fechas_ord[30],  "venta",  "TSLA", 2)
+        sim.programar_orden(fechas_ord[60],  "compra", "NVDA", 3)
+    if len(fechas_ord) > 150:
+        sim.programar_orden(fechas_ord[120], "venta",  "NFLX", 5)
+        sim.programar_orden(fechas_ord[150], "compra", "AAPL", 4)
+    if len(fechas_ord) > 200:
+        sim.programar_orden(fechas_ord[200], "venta",  "BABA", 3)
 
-    def valorActual(self):
-        tasa_diaria = self.tasa / 365
-        return self.capital * (1 + tasa_diaria) ** self.dias
+    sim.simular()
 
-    def valor(self):
-        return self.valorActual()
-    
+    resumen = sim.resumen()
+    print("\n--- RESULTADOS ---")
+    for k, v in resumen.items():
+        if isinstance(v, float):
+            print(f"{k}: {v:,.2f}")
+        else:
+            print(f"{k}: {v}")
+
+    Grafico(port.historial, sim.rentabilidad_acumulada_serie()).graficar()
+
+
+if __name__ == "__main__":
+    main()
