@@ -40,7 +40,6 @@ proyecto/
 │
 ├── main.py
 ├── portafolio.py
-├── activo.py
 ├── accion.py
 ├── renta_fija.py
 ├── transaccion.py
@@ -57,7 +56,6 @@ El sistema está desarrollado bajo el paradigma de programación orientada a obj
 
 Principales clases:
 
-* `Activo`
 * `Accion`
 * `RentaFija`
 * `Portafolio`
