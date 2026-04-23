@@ -141,3 +141,9 @@ Proyecto académico desarrollado como simulador financiero orientado al análisi
 
 ## Diagrama UML
 <img width="1179" height="775" alt="image" src="https://github.com/user-attachments/assets/a999fa60-594b-4eea-929d-2230e180895f" />
+
+---
+
+## Correccón diagrama UML
+<img width="1347" height="768" alt="image" src="https://github.com/user-attachments/assets/22922e1c-ac2f-4b13-8a27-bb061694a9f4" />
+
